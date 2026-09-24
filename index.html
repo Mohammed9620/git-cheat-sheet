@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Git cheat sheet / ورقة Git السريعة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400..700&family=Readex+Pro:wght@300..700&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400..700&family=Readex+Pro:wght@300..700&display=swap"></noscript>
+<style>
+:root{
+  --bg:#FFFFFF;--surface:#F4F6F9;--surface-2:#E7EBF1;
+  --ink:#141E2B;--muted:#5D6B7E;--rule:#E4E9F0;
+  --red:#B32842;--green:#12703A;--amber:#8A5300;--blue:#2559D0;
+  --red-soft:#FBE7EB;--green-soft:#E1F3E8;--amber-soft:#FAEFD5;--blue-soft:#E6EEFC;
+  --on-fill:#FFFFFF;
+  --sans:"Readex Pro",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Arabic",Tahoma,system-ui,sans-serif;
+  --mono:"JetBrains Mono",Consolas,"Cascadia Code",SFMono-Regular,Menlo,ui-monospace,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0E1621;--surface:#151F2D;--surface-2:#1F2C3F;
+    --ink:#E8EEF6;--muted:#9AA9BC;--rule:#223045;
+    --red:#FF8095;--green:#5FDB93;--amber:#F3C464;--blue:#86B4FF;
+    --red-soft:#3A1B26;--green-soft:#12321F;--amber-soft:#3A2D10;--blue-soft:#162A4D;
+    --on-fill:#0E1621;
+    color-scheme:dark;
+  }
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:70px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+html[lang="ar"] body{font-size:16px;line-height:1.9}
+p{margin:0}
+a{color:inherit}
+h1,h2,h3{margin:0;line-height:1.25;text-wrap:balance;font-weight:600}
+h1{font-size:clamp(2rem,8vw,2.8rem);letter-spacing:-.025em}
+h2{font-size:1.25rem;letter-spacing:-.01em}
+h3{font-size:1rem;margin-top:40px}
+html[lang="ar"] h1,html[lang="ar"] h2,html[lang="ar"] h3{letter-spacing:0;line-height:1.5}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:6px}
+.wrap{width:100%;max-width:720px;margin-inline:auto;padding-inline:20px}
+
+/* top bar */
+.bar{position:sticky;top:0;z-index:30;background:var(--bg);border-bottom:1px solid var(--rule)}
+.bar-in{display:flex;align-items:center;gap:6px;min-height:52px}
+.brand{font:700 1.05rem var(--mono);text-decoration:none;padding-inline-end:6px;letter-spacing:-.02em}
+.menu summary{list-style:none;display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 10px;border-radius:999px;color:var(--muted);cursor:pointer;font-size:.88rem;user-select:none;white-space:nowrap}
+.menu summary::-webkit-details-marker{display:none}
+.menu summary svg{width:14px;height:14px;transition:transform .2s}
+.menu[open] summary svg{transform:rotate(180deg)}
+.menu nav{position:absolute;inset-inline:0;top:100%;background:var(--bg);border-bottom:1px solid var(--rule)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;max-width:720px;margin-inline:auto;padding:12px 20px 18px}
+.chip{display:inline-flex;align-items:center;min-height:34px;padding:0 14px;border-radius:999px;background:var(--surface);text-decoration:none;font-size:.86rem}
+.chip:hover{background:var(--surface-2)}
+.seg{direction:ltr;margin-inline-start:auto;display:inline-flex;padding:3px;border-radius:999px;background:var(--surface)}
+.seg button{border:0;background:transparent;color:var(--muted);font:500 .84rem var(--sans);min-width:46px;min-height:32px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--bg);color:var(--ink)}
+
+.view-toggle{margin-inline-start:8px;display:inline-flex;padding:3px;border-radius:999px;background:var(--surface)}
+.view-toggle button{border:0;background:transparent;color:var(--muted);font:500 .8rem var(--sans);min-width:56px;min-height:32px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.view-toggle button[aria-pressed="true"]{background:var(--bg);color:var(--ink)}
+
+/* favorites */
+.fav{flex:none;width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;opacity:.55;padding:0}
+.fav svg{width:16px;height:16px}
+.fav:hover{background:var(--surface-2);opacity:1}
+.fav.on{color:var(--amber);opacity:1}
+.fav.on svg path{fill:currentColor}
+body:not(.has-favs) #favs{display:none}
+
+/* search overlay */
+.iconbtn2{width:40px;height:40px;flex:none;display:grid;place-items:center;border:0;border-radius:999px;background:transparent;color:var(--muted);cursor:pointer;padding:0}
+.iconbtn2 svg{width:17px;height:17px}
+.iconbtn2:hover{background:var(--surface);color:var(--ink)}
+.srch{position:fixed;inset:0;z-index:50;background:rgba(10,18,30,.45);display:flex;align-items:flex-start;justify-content:center;padding:12vh 18px 18px}
+.srch[hidden]{display:none}
+.srch-box{width:100%;max-width:520px;background:var(--bg);border:1px solid var(--rule);border-radius:16px;overflow:hidden;box-shadow:0 20px 50px -20px rgba(8,17,29,.4)}
+.srch-box input{width:100%;border:0;outline:0;padding:16px 18px;font:500 1rem var(--sans);background:var(--bg);color:var(--ink);border-bottom:1px solid var(--rule)}
+.srch-res{list-style:none;margin:0;padding:6px;max-height:50vh;overflow:auto}
+.sres{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:10px;cursor:pointer}
+.sres code{font:500 .8rem var(--mono);direction:ltr;unicode-bidi:isolate;flex:none;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sres>span{color:var(--muted);font-size:.85rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.sres.sel{background:var(--surface)}
+.sres .badge{margin-inline-start:auto}
+.sempty{padding:18px;text-align:center;color:var(--muted);font-size:.9rem}
+.srch-foot{padding:10px 16px;color:var(--muted);font-size:.78rem;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--rule)}
+.srch-foot span{margin-inline-end:-4px}
+kbd{font:600 .72rem var(--mono);border:1px solid var(--rule);border-radius:5px;padding:1px 6px;background:var(--surface)}
+
+/* hero + live journey */
+.hero{padding-block:44px 0}
+.lede{margin-top:14px;color:var(--muted);max-width:44ch}
+.stage{margin-top:36px;padding:22px 18px 14px;background:var(--surface);border-radius:20px}
+.stage h2{font-size:1.05rem}
+.hint{margin:4px 0 16px;color:var(--muted);font-size:.9rem;line-height:1.6}
+.journey{position:relative}
+.journey::before{content:"";position:absolute;inset-inline-start:11px;top:22px;bottom:22px;width:2px;background:var(--surface-2)}
+.stop{position:relative;padding-block:10px;padding-inline:34px 12px;border-radius:12px;transition:background .25s}
+.stop.is-here{background:var(--tone-soft)}
+.node{position:absolute;inset-inline-start:2px;top:14px;width:20px;height:20px;border-radius:50%;border:3px solid var(--tone);background:var(--surface);transition:background .25s}
+.stop.is-here .node{background:var(--tone)}
+.stop-title{font-weight:600;line-height:1.5}
+.stop-note{color:var(--muted);font-size:.84rem;line-height:1.55}
+.stop.is-here .stop-note{color:var(--ink)}
+.token{display:inline-flex;margin-top:8px;padding:3px 11px;border-radius:999px;background:var(--tone);color:var(--on-fill);font:600 .78rem var(--mono)}
+.token.drop{animation:drop .28s ease-out}
+@keyframes drop{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+.hop{display:flex;flex-direction:column;gap:6px;padding:4px 0 8px;padding-inline-start:34px}
+.hb{display:flex;align-items:flex-start;gap:8px;width:100%;min-height:44px;padding:9px 12px;border-radius:10px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);font:500 .8rem/1.5 var(--mono);text-align:left;direction:ltr;cursor:pointer}
+.hb i{font-style:normal;flex:none;width:1em;text-align:center}
+.hb code{font:inherit;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.hb.back{background:transparent;color:var(--ink);border-color:var(--surface-2)}
+.hb:disabled{background:transparent;color:var(--muted);border-color:var(--surface-2);opacity:.6;cursor:default}
+.term{direction:ltr;text-align:left;unicode-bidi:isolate;margin:14px 0 0;padding:14px 16px;border-radius:12px;background:var(--surface);color:var(--ink);font:500 .78rem/1.75 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere;tab-size:4}
+.stage .term{background:var(--bg)}
+.term .p,.t-mut{color:var(--muted)}
+.t-red{color:var(--red)}.t-green{color:var(--green)}.t-blue{color:var(--blue)}.t-amber{color:var(--amber)}
+.explain{margin-top:14px;font-size:.93rem;line-height:1.7;min-height:3.4em}
+.linkbtn{padding:8px 0;border:0;background:none;color:var(--muted);font:inherit;font-size:.85rem;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+/* sections */
+.sec{margin-top:64px}
+.intro{margin-top:6px;color:var(--muted);font-size:.92rem;line-height:1.7}
+.rows{list-style:none;margin:18px 0 0;padding:0}
+.row{display:grid;gap:8px 24px;padding:10px 0}
+.meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.desc{color:var(--muted);font-size:.9rem;line-height:1.65}
+.badge{flex:none;display:inline-flex;align-items:center;padding:0 9px;border-radius:999px;font-size:.72rem;font-weight:600;line-height:1.8;white-space:nowrap}
+.badge.safe{background:var(--green-soft);color:var(--green)}
+.badge.local{background:var(--amber-soft);color:var(--amber)}
+.badge.danger{background:var(--red-soft);color:var(--red)}
+@media (min-width:720px){.row{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:center}}
+
+.cmd{display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;border:0;border-radius:8px;background:var(--surface);color:var(--ink);font:500 .8rem/1.5 var(--mono);text-align:left;direction:ltr;unicode-bidi:isolate;cursor:pointer;transition:background .15s}
+.cmd-line{display:flex;gap:6px;align-items:stretch;min-width:0}
+.cmd-line .cmd{flex:1;min-width:0}
+.cmd:hover{background:var(--surface-2)}
+.cmd .prompt{color:var(--muted);user-select:none}
+.cmd code{font:inherit;flex:1;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.cmd svg{flex:none;width:14px;height:14px;color:var(--muted);opacity:.5}
+.cmd.copied{background:var(--green-soft)}
+
+.fig{margin:32px 0 0}
+.fig-title{font-weight:600;font-size:.88rem;margin-bottom:8px}
+.fig figcaption{margin-top:10px;color:var(--muted);font-size:.85rem;line-height:1.65}
+[data-graph]{padding:16px 12px;background:var(--surface);border-radius:14px}
+.g{display:block;width:100%;max-width:400px;height:auto;margin-inline:auto;direction:ltr;overflow:visible}
+.g .edge{fill:none;stroke-width:2.5;stroke-linecap:round}
+.g .n{fill:var(--surface);stroke-width:2.5}
+.g .nt{font:600 10px var(--mono);fill:var(--ink)}
+.g .nt.on{fill:var(--on-fill)}
+.g .nt.ghost{fill:var(--muted)}
+.g .pill text{font:600 10px var(--mono);fill:var(--on-fill)}
+.g .lb{font:500 10px var(--mono);fill:var(--muted)}
+
+.note{margin-top:22px;padding-inline-start:14px;border-inline-start:2px solid var(--amber);font-size:.9rem;line-height:1.7}
+.note.warn{border-inline-start-color:var(--red)}
+.note.info{border-inline-start-color:var(--blue)}
+.legend{margin-top:10px;color:var(--muted);font-size:.85rem}
+
+.flow{list-style:none;margin:20px 0 0;padding:0;counter-reset:s}
+.flow li{position:relative;padding-inline-start:42px;padding-bottom:20px;counter-increment:s}
+.flow li::before{content:counter(s);position:absolute;inset-inline-start:0;top:0;width:28px;height:28px;border-radius:50%;background:var(--surface);color:var(--ink);display:grid;place-items:center;font:600 .78rem var(--mono)}
+.flow li::after{content:"";position:absolute;inset-inline-start:13px;top:32px;bottom:4px;width:2px;background:var(--surface-2)}
+.flow li:last-child{padding-bottom:0}
+.flow li:last-child::after{display:none}
+.step-desc{font-weight:500;margin-bottom:6px;line-height:1.6}
+
+.rules{list-style:none;margin:16px 0 0;padding:0}
+.rules li{position:relative;padding-inline-start:20px;margin-top:12px}
+.rules li::before{content:"";position:absolute;inset-inline-start:3px;top:.8em;width:5px;height:5px;border-radius:50%;background:var(--muted)}
+
+.drills{list-style:none;margin:14px 0 0;padding:0}
+.drills label{display:flex;gap:12px;align-items:flex-start;padding:9px 0;cursor:pointer}
+.drills input{flex:none;width:20px;height:20px;margin:4px 0 0;accent-color:var(--green)}
+.progress{margin-top:10px;color:var(--muted);font-size:.88rem}
+
+.foot{margin-top:72px;padding-block:0 64px;color:var(--muted);font-size:.84rem;line-height:1.7}
+
+.toast{position:fixed;inset-inline:0;bottom:22px;margin-inline:auto;width:max-content;max-width:calc(100% - 36px);padding:9px 18px;border-radius:999px;background:var(--ink);color:var(--bg);font-size:.88rem;line-height:1.5;opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .18s,transform .18s;z-index:40}
+.toast.show{opacity:1;transform:none}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+@media print{
+  .bar,.toast,.linkbtn,.hop{display:none!important}
+  .row,.fig,.note{break-inside:avoid}
+}
+
+/* view toggle: essentials mode */
+body.view-essentials .sec:not(.essentials){display:none}
+body.view-essentials .hero{display:none}
+body.view-essentials .view-toggle{display:inline-flex}
+
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap bar-in">
+    <a class="brand" href="#top">git</a>
+    <details class="menu" id="menu">
+      <summary><span data-en="Sections" data-ar="الأقسام"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+      <nav aria-label="Sections">
+        <div class="chips">
+          <a class="chip" href="#essentials" data-en="Essentials" data-ar="الأساسيات"></a>
+          <a class="chip" href="#favs" data-en="Favorites" data-ar="المفضلة"></a>
+          <a class="chip" href="#setup" data-en="Setup" data-ar="الإعداد"></a>
+          <a class="chip" href="#start" data-en="Start" data-ar="البداية"></a>
+          <a class="chip" href="#daily" data-en="Daily loop" data-ar="الروتين اليومي"></a>
+          <a class="chip" href="#inspect" data-en="Inspect" data-ar="استكشاف"></a>
+          <a class="chip" href="#branch" data-en="Branches" data-ar="الفروع"></a>
+          <a class="chip" href="#undo" data-en="Undo" data-ar="التراجع"></a>
+          <a class="chip" href="#stash" data-en="Stash" data-ar="Stash"></a>
+          <a class="chip" href="#remote" data-en="GitHub" data-ar="GitHub"></a>
+          <a class="chip" href="#ignore" data-en=".gitignore" data-ar="&lrm;.gitignore"></a>
+          <a class="chip" href="#rules" data-en="Rules" data-ar="القواعد"></a>
+          <a class="chip" href="#drills" data-en="Drills" data-ar="التمارين"></a>
+        </div>
+      </nav>
+    </details>
+    <button type="button" class="iconbtn2" id="searchBtn" aria-label="Search commands / البحث عن أمر"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.8-3.8"/></svg></button>
+    <div class="seg" role="group" aria-label="Language / اللغة">
+      <button type="button" data-lang="ar" aria-pressed="true">عربي</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+    <div class="view-toggle" role="group" aria-label="View mode / وضع العرض">
+      <button type="button" data-view="essentials" aria-pressed="true" data-en="Essentials" data-ar="الأساسيات"></button>
+      <button type="button" data-view="full" aria-pressed="false" data-en="Full" data-ar="كامل"></button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="top">
+
+  <section class="hero">
+    <h1 data-en="Git on one page" data-ar="Git في صفحة واحدة"></h1>
+    <p class="lede" data-en="Every command you will need, in the order you will need it. Tap any command to copy it." data-ar="كل الأوامر التي ستحتاجها بالترتيب الذي ستحتاجه. اضغط على أي أمر لنسخه."></p>
+
+    <div class="stage">
+      <h2 data-en="Follow one change through Git" data-ar="تابع تعديلاً واحداً داخل Git"></h2>
+      <p class="hint" data-en="You just edited test_login.py. Tap the commands to move it along." data-ar="عدّلتَ للتو الملف test_login.py. اضغط على الأوامر لتحريكه."></p>
+      <div class="journey" id="journey"></div>
+      <pre class="term" id="term"></pre>
+      <p class="explain" id="explain" aria-live="polite"></p>
+      <button class="linkbtn" id="reset" type="button" data-en="Start over" data-ar="ابدأ من جديد"></button>
+    </div>
+  </section>
+
+  <section class="sec essentials" id="favs" hidden>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <h2 data-en="My favorites" data-ar="مفضلاتي"></h2>
+        <p class="intro" data-en="Commands you starred. Tap the star on any command to add it here." data-ar="الأوامر التي ميّزتها بنجمة. اضغط على نجمة أي أمر لإضافته هنا."></p>
+      </div>
+      <button type="button" class="chip" id="exportAliasBtn" style="cursor:pointer;border:1px solid var(--rule);margin-top:4px" data-en="Copy as ~/.gitconfig aliases" data-ar="نسخ كاختصارات gitconfig"></button>
+    </div>
+    <ul class="rows" id="favs-list"></ul>
+  </section>
+
+  <section class="sec essentials" id="essentials">
+    <h2 data-en="Daily Essentials" data-ar="الأساسيات اليومية"></h2>
+    <p class="intro" data-en="The 15 commands you use 90% of the time." data-ar="أهم 15 أمراً تستخدمها 90% من الوقت."></p>
+    <ul class="rows" data-rows="essentials"></ul>
+  </section>
+
+  <section class="sec" id="setup">
+    <h2 data-en="First-time setup" data-ar="الإعداد لأول مرة"></h2>
+    <p class="intro" data-en="Once per machine." data-ar="مرة واحدة لكل جهاز."></p>
+    <ul class="rows" data-rows="setup"></ul>
+  </section>
+
+  <section class="sec" id="start">
+    <h2 data-en="Start a repository" data-ar="ابدأ repository"></h2>
+    <p class="intro" data-en="Create a new repository or copy an existing one." data-ar="أنشئ repository جديداً أو انسخ واحداً موجوداً."></p>
+    <ul class="rows" data-rows="start"></ul>
+  </section>
+
+  <section class="sec" id="daily">
+    <h2 data-en="The daily loop" data-ar="الروتين اليومي"></h2>
+    <p class="intro" data-en="The loop you will repeat all day: check, stage, commit, sync." data-ar="الحلقة التي ستكررها كل يوم: افحص، جهّز، سجّل، زامن."></p>
+    <ul class="rows" data-rows="daily"></ul>
+  </section>
+
+  <section class="sec" id="inspect">
+    <h2 data-en="Look around" data-ar="استكشف"></h2>
+    <p class="intro" data-en="Read-only commands. Nothing here changes your project." data-ar="أوامر للقراءة فقط. لا شيء هنا يغيّر مشروعك."></p>
+    <ul class="rows" data-rows="inspect"></ul>
+  </section>
+
+  <section class="sec" id="branch">
+    <h2 data-en="Branches and merging" data-ar="الفروع والدمج"></h2>
+    <p class="intro" data-en="Branches let you try things without touching main." data-ar="الفروع تتيح لك التجربة دون المساس بـ main."></p>
+    <ul class="rows" data-rows="branch"></ul>
+
+    <figure class="fig">
+      <p class="fig-title" data-en="Two branches" data-ar="فرعان"></p>
+      <div data-graph="before"></div>
+      <figcaption data-en="A branch is just a label pointing at a commit. main and feature share history up to B." data-ar="الـ branch مجرد اسم يشير إلى commit. يشترك main وfeature في التاريخ حتى B."></figcaption>
+    </figure>
+    <figure class="fig">
+      <p class="fig-title" data-en="After merge" data-ar="بعد الـ merge"></p>
+      <div data-graph="merge"></div>
+      <figcaption data-en="Merge keeps both lines of history and adds a merge commit (M)." data-ar="الـ merge يحافظ على خطّي التاريخ ويضيف merge commit (M)."></figcaption>
+    </figure>
+    <figure class="fig">
+      <p class="fig-title" data-en="After rebase" data-ar="بعد الـ rebase"></p>
+      <div data-graph="rebase"></div>
+      <figcaption data-en="Rebase replays your commits on top of main as new commits (D' and E'). The originals, dashed, are left behind." data-ar="الـ rebase يعيد تطبيق commits فرعك فوق main على شكل commits جديدة (D' وE'). النسخ الأصلية المنقّطة تُترك خلفها."></figcaption>
+    </figure>
+
+    <h3 data-en="When a merge hits a conflict" data-ar="عندما يظهر conflict أثناء الدمج"></h3>
+    <p class="intro" data-en="Git marks the clash inside the file. Keep what you want, delete the three marker lines, then finish the merge." data-ar="يضع Git علامات التعارض داخل الملف. احتفظ بما تريد، واحذف أسطر العلامات الثلاثة، ثم أنهِ الدمج."></p>
+<pre class="term"><span class="t-amber">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span>
+<span class="t-green">timeout = 30</span>
+<span class="t-amber">=======</span>
+<span class="t-blue">timeout = 60</span>
+<span class="t-amber">&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature</span></pre>
+    <p class="legend" data-en="Green: your side (HEAD). Blue: the branch you are merging in." data-ar="الأخضر: جهتك (HEAD). الأزرق: الفرع الذي تدمجه."></p>
+    <ul class="rows" data-rows="conflict"></ul>
+  </section>
+
+  <section class="sec" id="undo">
+    <h2 data-en="Undo" data-ar="التراجع"></h2>
+    <p class="intro" data-en="Find your situation, then read the badge. It tells you how risky the command is." data-ar="اعثر على حالتك ثم اقرأ الشارة. هي تخبرك بمدى خطورة الأمر."></p>
+    <figure class="fig">
+      <p class="fig-title" data-en="Counting back from HEAD" data-ar="العدّ للخلف من HEAD"></p>
+      <div data-graph="head"></div>
+      <figcaption data-en="HEAD~1 means one commit before HEAD. reset and revert both use this notation." data-ar="HEAD~1 تعني commit واحداً قبل HEAD. يستخدم reset وrevert هذه الصيغة."></figcaption>
+    </figure>
+    <ul class="rows" data-rows="undo"></ul>
+    <aside class="note warn" data-en="Already pushed? Use revert. reset and amend rewrite history, which causes trouble for anyone who pulled the old history." data-ar="دفعتَ الـ commit بالفعل؟ استخدم revert. الأمران reset وamend يعيدان كتابة التاريخ، وهذا يسبب مشاكل لمن سحب التاريخ القديم."></aside>
+  </section>
+
+  <section class="sec" id="stash">
+    <h2 data-en="Stash" data-ar="Stash (حفظ مؤقت)"></h2>
+    <p class="intro" data-en="Put unfinished work aside without committing it." data-ar="ضع عملاً غير منتهٍ جانباً بدون أن تسجّله."></p>
+    <ul class="rows" data-rows="stash"></ul>
+  </section>
+
+  <section class="sec" id="remote">
+    <h2 data-en="Working with GitHub" data-ar="العمل مع GitHub"></h2>
+    <p class="intro" data-en="The flow most teams use: one branch per task, merged through a Pull Request." data-ar="الأسلوب الذي تعتمده معظم الفرق: فرع لكل مهمة، ويُدمج عبر Pull Request."></p>
+    <ol class="flow" id="flow"></ol>
+    <h3 data-en="Also useful" data-ar="أوامر مفيدة أيضاً"></h3>
+    <ul class="rows" data-rows="remote"></ul>
+  </section>
+
+  <section class="sec" id="ignore">
+    <h2 data-en=".gitignore" data-ar="&lrm;.gitignore"></h2>
+    <p class="intro" data-en="Patterns for files Git should never track." data-ar="أنماط للملفات التي يجب ألا يتتبعها Git أبداً."></p>
+<pre class="term"><span class="t-mut"># secrets and local config</span>
+.env
+*.local
+
+<span class="t-mut"># dependencies and build output</span>
+node_modules/
+venv/
+__pycache__/
+dist/
+
+<span class="t-mut"># logs and reports</span>
+*.log
+reports/</pre>
+    <ul class="rows" data-rows="ignore"></ul>
+    <aside class="note info" data-en="Adding a name to .gitignore does not affect files Git already tracks. Untrack them first." data-ar="إضافة اسم إلى &lrm;.gitignore لا تؤثر على ملفات يتتبعها Git بالفعل. أوقف تتبعها أولاً."></aside>
+  </section>
+
+  <section class="sec" id="rules">
+    <h2 data-en="Rules worth keeping" data-ar="قواعد تستحق الالتزام"></h2>
+    <ul class="rules">
+      <li data-en="Commit small and often. One idea per commit." data-ar="اجعل الـ commit صغيراً ومتكرراً. فكرة واحدة لكل commit."></li>
+      <li data-en="Run git status before every commit and every push." data-ar="شغّل git status قبل كل commit وكل push."></li>
+      <li data-en="Do not rewrite history you have already pushed. Use revert, not reset." data-ar="لا تعدّل تاريخاً دفعته بالفعل. استخدم revert وليس reset."></li>
+      <li data-en="Keep secrets out of Git. If a key leaks, replace the key. Deleting the file later is not enough." data-ar="أبعد الأسرار عن Git. إذا تسرّب مفتاح فاستبدله. حذف الملف لاحقاً لا يكفي."></li>
+      <li data-en="Work on a branch and keep main working." data-ar="اعمل على فرع مستقل وأبقِ main سليماً."></li>
+      <li data-en="Pull before you push when other people share the branch." data-ar="اسحب (pull) قبل أن تدفع (push) عندما يشارك غيرك في الفرع."></li>
+    </ul>
+    <h3 data-en="Commit messages" data-ar="رسائل الـ commit"></h3>
+<pre class="term"><span class="t-red">- update</span>
+<span class="t-red">- fixed bugs and added stuff</span>
+<span class="t-green">+ Add login test for a wrong password</span>
+<span class="t-green">+ Fix timeout in the checkout test</span></pre>
+    <p class="legend" data-en="Describe what the commit does, in the imperative: Add, Fix, Remove." data-ar="صف ما يفعله الـ commit بصيغة الأمر: Add وFix وRemove."></p>
+  </section>
+
+  <section class="sec" id="drills">
+    <h2 data-en="Practice drills" data-ar="تمارين عملية"></h2>
+    <p class="intro" data-en="Do these in a practice repository or on throwaway branches. The point is to break things safely." data-ar="نفّذ هذه التمارين في repository تجريبي أو على فروع مؤقتة. الهدف أن تكسر الأشياء بأمان."></p>
+    <ul class="drills" id="drills"></ul>
+    <p class="progress" id="progress"></p>
+  </section>
+
+</main>
+
+<footer class="wrap foot">
+  <p data-en="switch and restore need Git 2.23 or newer. On older versions use checkout." data-ar="الأمران switch وrestore يحتاجان Git 2.23 أو أحدث. في النسخ الأقدم استخدم checkout."></p>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="srch" id="srch" hidden>
+  <div class="srch-box" role="dialog" aria-modal="true" aria-label="Search">
+    <input type="text" id="srch-input" autocomplete="off" spellcheck="false" placeholder="Search commands… / ابحث عن أمر…">
+    <ul class="srch-res" id="srch-res"></ul>
+    <div class="srch-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd></span><span data-en="navigate" data-ar="تنقّل"></span>
+      <span><kbd>Enter</kbd></span><span data-en="copy &amp; close" data-ar="نسخ وإغلاق"></span>
+      <span><kbd>Esc</kbd></span><span data-en="close" data-ar="إغلاق"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const root = document.documentElement;
+const store = {
+  get(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { window.localStorage.setItem(k, v); } catch (e) {} }
+};
+let lang = store.get('gcs-lang') === 'en' ? 'en' : 'ar';
+const T = (en, ar) => (lang === 'ar' ? ar : en);
+
+const ICON_COPY = `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>`;
+
+const RISK = {
+  safe:   [`Safe`, `آمن`],
+  local:  [`Before push only`, `قبل الـ push فقط`],
+  danger: [`Destroys changes`, `يحذف التغييرات`]
+};
+
+/* [command, english, arabic, risk?] */
+const ROWS = {
+  setup: [
+    [`git config --global user.name "Your Name"`, `Set the name shown on your commits`, `حدّد الاسم الذي يظهر على الـ commits`],
+    [`git config --global user.email "you@example.com"`, `Set your email (use the one on GitHub)`, `حدّد بريدك الإلكتروني (نفس بريد GitHub)`],
+    [`git config --global init.defaultBranch main`, `New repositories start on main`, `أي repository جديد يبدأ على فرع main`],
+    [`git config --list`, `Show every setting Git is using`, `اعرض كل الإعدادات التي يستخدمها Git`]
+  ],
+  start: [
+    [`git init`, `Turn the current folder into a repository`, `حوّل المجلد الحالي إلى repository`],
+    [`git clone <url>`, `Copy a repository from GitHub to your machine`, `انسخ repository من GitHub إلى جهازك`],
+    [`git remote add origin <url>`, `Link this repository to one on GitHub`, `اربط هذا الـ repository بآخر على GitHub`],
+    [`git remote -v`, `Show the remotes you are linked to`, `اعرض الـ remotes المرتبطة`],
+    [`git branch -M main`, `Rename the current branch to main`, `غيّر اسم الفرع الحالي إلى main`],
+    [`git push -u origin main`, `First push: remembers where main goes next time`, `أول push: يحفظ الوجهة فلا تكتبها مرة أخرى`]
+  ],
+  daily: [
+    [`git status`, `What changed? Run it before every commit`, `ما الذي تغيّر؟ شغّله قبل كل commit`],
+    [`git add <file>`, `Stage one file for the next commit`, `جهّز ملفاً واحداً للـ commit القادم`],
+    [`git add .`, `Stage every change in this folder`, `جهّز كل التغييرات في هذا المجلد`],
+    [`git add -p`, `Stage piece by piece and review each one`, `جهّز التغييرات قطعة قطعة وراجع كل واحدة`],
+    [`git commit -m "message"`, `Save a snapshot of what is staged`, `احفظ لقطة (snapshot) لما تم تجهيزه`],
+    [`git commit -am "message"`, `Stage tracked files and commit in one step (new files are not included)`, `جهّز الملفات المتتبَّعة وسجّل الـ commit بخطوة واحدة (لا يشمل الملفات الجديدة)`],
+    [`git push`, `Send your commits to the remote`, `أرسل الـ commits إلى المستودع البعيد`],
+    [`git pull`, `Fetch new commits from the remote and merge them`, `اجلب الـ commits الجديدة من البعيد وادمجها`],
+    [`git fetch`, `Download remote changes without merging them`, `نزّل تغييرات البعيد بدون دمجها`]
+  ],
+  inspect: [
+    [`git log --oneline`, `Compact history, one line per commit`, `سجل مختصر، سطر لكل commit`],
+    [`git log --oneline --graph --decorate --all`, `History drawn as a branch graph`, `السجل مرسوماً كرسم للفروع`],
+    [`git diff`, `Changes you have not staged yet`, `التغييرات التي لم تجهّزها بعد`],
+    [`git diff --staged`, `What your next commit will contain`, `ما سيحتويه الـ commit القادم`],
+    [`git show <commit>`, `One commit: its message and its changes`, `commit واحد: رسالته وتغييراته`],
+    [`git blame <file>`, `Who last changed each line, and when`, `من عدّل كل سطر آخر مرة ومتى`],
+    [`git config --global alias.lg "log --oneline --graph --decorate --all"`, `Create a shortcut: git lg runs the graph log`, `أنشئ اختصاراً: الأمر git lg ينفّذ سجل الرسم`]
+  ],
+  branch: [
+    [`git branch`, `List branches (* marks the current one)`, `اعرض الفروع (علامة * تعني الفرع الحالي)`],
+    [`git switch -c <name>`, `Create a branch and move to it`, `أنشئ فرعاً وانتقل إليه`],
+    [`git switch <name>`, `Move to an existing branch`, `انتقل إلى فرع موجود`],
+    [`git merge <name>`, `Merge that branch into the one you are on`, `ادمج ذلك الفرع في الفرع الذي أنت عليه`],
+    [`git merge --abort`, `Cancel a merge that hit conflicts`, `ألغِ عملية دمج ظهرت فيها conflicts`],
+    [`git rebase main`, `Replay your branch on top of main for a straight history`, `أعد تطبيق commits فرعك فوق main لتحصل على تاريخ مستقيم`],
+    [`git branch -d <name>`, `Delete a branch that is already merged`, `احذف فرعاً تم دمجه`],
+    [`git branch -D <name>`, `Force-delete a branch, merged or not`, `احذف فرعاً قسراً، سواء دُمج أم لا`]
+  ],
+  conflict: [
+    [`git add <file>`, `Mark the conflict as resolved`, `اعتبر الـ conflict محلولاً`],
+    [`git commit`, `Finish the merge`, `أنهِ عملية الدمج`]
+  ],
+  undo: [
+    [`git restore --staged <file>`, `Unstage a file and keep your edits`, `أزل الملف من التجهيز وأبقِ تعديلاتك`, `safe`],
+    [`git restore <file>`, `Throw away uncommitted edits in a file`, `تخلَّ عن تعديلات الملف التي لم تسجّلها`, `danger`],
+    [`git commit --amend`, `Fix the last commit: its message or a forgotten file`, `عدّل آخر commit: رسالته أو ملف نسيته`, `local`],
+    [`git reset --soft HEAD~1`, `Undo the last commit, keep the changes staged`, `تراجع عن آخر commit وأبقِ التغييرات مجهَّزة`, `local`],
+    [`git reset HEAD~1`, `Undo the last commit, keep the changes unstaged`, `تراجع عن آخر commit وأبقِ التغييرات غير مجهَّزة`, `local`],
+    [`git reset --hard HEAD~1`, `Undo the last commit and delete its changes`, `تراجع عن آخر commit واحذف تغييراته`, `danger`],
+    [`git revert <commit>`, `Add a new commit that cancels an old one; safe after a push`, `أضف commit جديداً يلغي أثر commit قديم؛ آمن بعد الـ push`, `safe`],
+    [`git reflog`, `List every commit HEAD has pointed to: your safety net`, `اعرض كل commit أشار إليه HEAD: شبكة الأمان الخاصة بك`, `safe`],
+    [`git switch -c rescue <hash>`, `Bring a lost commit back on a new branch`, `أعد commit ضائعاً على فرع جديد`, `safe`],
+    [`git clean -nd`, `Preview which untracked files would be deleted`, `اعرض الملفات غير المتتبَّعة التي ستُحذف دون حذفها`, `safe`],
+    [`git clean -fd`, `Delete untracked files and folders for real`, `احذف الملفات والمجلدات غير المتتبَّعة فعلياً`, `danger`]
+  ],
+  stash: [
+    [`git stash`, `Shelve uncommitted changes and get a clean folder`, `احفظ تغييراتك مؤقتاً واحصل على مجلد نظيف`],
+    [`git stash -u`, `Include new (untracked) files too`, `أدخل الملفات الجديدة (غير المتتبَّعة) أيضاً`],
+    [`git stash list`, `See what you have shelved`, `اعرض ما حفظته`],
+    [`git stash pop`, `Bring back the latest stash and remove it from the list`, `أعد آخر stash واحذفه من القائمة`],
+    [`git stash apply`, `Bring it back but keep it in the list`, `أعده مع إبقائه في القائمة`],
+    [`git stash drop`, `Delete the latest stash`, `احذف آخر stash`]
+  ],
+  remote: [
+    [`git pull --rebase`, `Pull without creating a merge commit`, `اسحب التغييرات دون إنشاء merge commit`],
+    [`git push --force-with-lease`, `Safer force-push. Only on your own branch, after amend or rebase`, `force-push أكثر أماناً. على فرعك أنت فقط، بعد amend أو rebase`],
+    [`git push origin --delete <branch>`, `Delete a branch on GitHub`, `احذف فرعاً من GitHub`],
+    [`git tag v1.0 && git push origin v1.0`, `Mark a release and publish the tag`, `علّم إصداراً وانشر الـ tag`],
+    [`git remote set-url origin <url>`, `Point origin at a different URL`, `غيّر عنوان الـ origin`]
+  ],
+  ignore: [
+    [`git rm --cached <file>`, `Stop tracking a file but keep it on disk`, `أوقف تتبّع ملف وأبقِه على جهازك`],
+    [`git check-ignore -v <file>`, `Find out which rule is ignoring a file`, `اكتشف أي قاعدة تتجاهل هذا الملف`]
+  ],
+  essentials: [
+    [`git status`, `What changed? Run it before every commit`, `ما الذي تغيّر؟ شغّله قبل كل commit`],
+    [`git add .`, `Stage every change in this folder`, `جهّز كل التغييرات في هذا المجلد`],
+    [`git commit -m "message"`, `Save a snapshot of what is staged`, `احفظ لقطة (snapshot) لما تم تجهيزه`],
+    [`git push`, `Send your commits to the remote`, `أرسل الـ commits إلى المستودع البعيد`],
+    [`git pull`, `Fetch new commits from the remote and merge them`, `اجلب الـ commits الجديدة من البعيد وادمجها`],
+    [`git switch -c <name>`, `Create a branch and move to it`, `أنشئ فرعاً وانتقل إليه`],
+    [`git switch main`, `Switch to main branch`, `انتقل لفرع main`],
+    [`git merge <name>`, `Merge that branch into current`, `ادمج ذلك الفرع في الحالي`],
+    [`git branch -d <name>`, `Delete a merged branch`, `احذف فرع تم دمجه`],
+    [`git restore --staged <file>`, `Unstage a file, keep edits`, `أزل من التجهيز، أبقِ التغييرات`, `safe`],
+    [`git restore <file>`, `Discard changes in a file`, `ارمِ تغييرات ملف`, `danger`],
+    [`git commit --amend`, `Fix last commit message/files`, `عدّل آخر commit`, `local`],
+    [`git reset --soft HEAD~1`, `Undo last commit, keep staged`, `الغِ آخر commit، أبقِ مجهّز`, `local`],
+    [`git revert <commit>`, `Safely undo a pushed commit`, `الغِ commit بأمان بعد push`, `safe`],
+    [`git log --oneline -10`, `Last 10 commits, one line each`, `آخر 10 commits، سطر لكل واحد`],
+    [`git diff`, `Unstaged changes`, `التغييرات غير المجهّزة`],
+    [`git diff --staged`, `Staged changes (next commit)`, `التغييرات المجهّزة (الـ commit الجاي)`]
+  ]
+};
+
+/* [command or empty, english, arabic] */
+const FLOW = [
+  [`git switch -c feature/login`, `Start a branch for the task`, `ابدأ فرعاً للمهمة`],
+  [`git add . && git commit -m "Add login page"`, `Work in small commits`, `اعمل على شكل commits صغيرة`],
+  [`git push -u origin feature/login`, `Publish the branch`, `انشر الفرع على GitHub`],
+  [``, `On GitHub: open a Pull Request`, `على GitHub: افتح Pull Request`],
+  [``, `Review it, then merge`, `راجعه ثم ادمجه`],
+  [`git switch main && git pull`, `Sync your local main`, `زامن main المحلي`],
+  [`git branch -d feature/login`, `Delete the finished branch`, `احذف الفرع بعد الانتهاء`]
+];
+
+const DRILLS = [
+  [`Branch, commit twice, merge back into main.`, `أنشئ فرعاً، سجّل commit مرتين، ثم ادمجه في main.`],
+  [`Create a merge conflict on purpose, then resolve it.`, `افتعل merge conflict عمداً ثم حلّه.`],
+  [`Make a bad commit, undo it with reset --soft, commit again.`, `اعمل commit خاطئاً، تراجع عنه بـ reset --soft، ثم سجّل من جديد.`],
+  [`Push a commit, then undo it safely with revert.`, `ادفع commit ثم تراجع عنه بأمان باستخدام revert.`],
+  [`Stash half-finished work, switch branches, come back and pop.`, `احفظ عملاً غير منتهٍ بـ stash، بدّل الفرع، ثم ارجع واعمل pop.`],
+  [`Lose a commit with reset --hard, then recover it with reflog.`, `افقد commit عبر reset --hard ثم استرجعه بواسطة reflog.`],
+  [`Open a Pull Request from a branch and merge it on GitHub.`, `افتح Pull Request من فرع وادمجه على GitHub.`]
+];
+
+/* ---------- commit graphs (always left-to-right) ---------- */
+const NS = 'http://www.w3.org/2000/svg';
+const LANE = { main: 'var(--blue)', feat: 'var(--green)', ghost: 'var(--muted)' };
+function svgEl(tag, attrs, text) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text != null) e.textContent = text;
+  return e;
+}
+function graph(host, spec) {
+  const svg = svgEl('svg', { viewBox: `0 0 340 ${spec.h}`, class: 'g', 'aria-hidden': 'true', focusable: 'false' });
+  const byId = {};
+  spec.nodes.forEach(n => { byId[n[0]] = n; });
+  (spec.edges || []).forEach(([a, b, lane]) => {
+    const A = byId[a], B = byId[b];
+    const x1 = A[1], y1 = A[2], x2 = B[1], y2 = B[2], mx = (x1 + x2) / 2;
+    const d = y1 === y2 ? `M${x1} ${y1}L${x2} ${y2}` : `M${x1} ${y1}C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}`;
+    svg.appendChild(svgEl('path', { d, class: 'edge', style: `stroke:${LANE[lane]}` + (lane === 'ghost' ? ';stroke-dasharray:4 4' : '') }));
+  });
+  spec.nodes.forEach(([id, x, y, lane, label, kind]) => {
+    const merge = kind === 'merge';
+    svg.appendChild(svgEl('circle', { cx: x, cy: y, r: 11, class: 'n', style: `stroke:${LANE[lane]}` + (lane === 'ghost' ? ';stroke-dasharray:3 3' : '') + (merge ? `;fill:${LANE[lane]}` : '') }));
+    svg.appendChild(svgEl('text', { x, y, dy: '0.35em', 'text-anchor': 'middle', class: 'nt' + (merge ? ' on' : '') + (lane === 'ghost' ? ' ghost' : '') }, label || id));
+  });
+  (spec.pills || []).forEach(([text, cx, cy, lane]) => {
+    const w = Math.round(text.length * 6.6 + 16);
+    const g = svgEl('g', { class: 'pill' });
+    g.appendChild(svgEl('rect', { x: cx - w / 2, y: cy - 8, width: w, height: 16, rx: 8, style: `fill:${LANE[lane]}` }));
+    g.appendChild(svgEl('text', { x: cx, y: cy, dy: '0.35em', 'text-anchor': 'middle' }, text));
+    svg.appendChild(g);
+  });
+  (spec.labels || []).forEach(([text, x, y]) => {
+    svg.appendChild(svgEl('text', { x, y, dy: '0.35em', 'text-anchor': 'middle', class: 'lb' }, text));
+  });
+  host.appendChild(svg);
+}
+const GRAPHS = {
+  before: {
+    h: 124,
+    nodes: [['A', 30, 40, 'main'], ['B', 86, 40, 'main'], ['C', 142, 40, 'main'], ['D', 142, 88, 'feat'], ['E', 198, 88, 'feat']],
+    edges: [['A', 'B', 'main'], ['B', 'C', 'main'], ['B', 'D', 'feat'], ['D', 'E', 'feat']],
+    pills: [['main', 142, 12, 'main'], ['feature', 198, 114, 'feat']]
+  },
+  merge: {
+    h: 124,
+    nodes: [['A', 30, 40, 'main'], ['B', 86, 40, 'main'], ['C', 142, 40, 'main'], ['D', 142, 88, 'feat'], ['E', 198, 88, 'feat'], ['M', 254, 40, 'main', 'M', 'merge']],
+    edges: [['A', 'B', 'main'], ['B', 'C', 'main'], ['C', 'M', 'main'], ['B', 'D', 'feat'], ['D', 'E', 'feat'], ['E', 'M', 'feat']],
+    pills: [['main', 254, 12, 'main'], ['feature', 198, 114, 'feat']]
+  },
+  rebase: {
+    h: 112,
+    nodes: [['A', 30, 40, 'main'], ['B', 86, 40, 'main'], ['C', 142, 40, 'main'], ["D'", 198, 40, 'feat'], ["E'", 254, 40, 'feat'], ['D', 142, 88, 'ghost'], ['E', 198, 88, 'ghost']],
+    edges: [['A', 'B', 'main'], ['B', 'C', 'main'], ['C', "D'", 'feat'], ["D'", "E'", 'feat'], ['B', 'D', 'ghost'], ['D', 'E', 'ghost']],
+    pills: [['main', 142, 12, 'main'], ['feature', 254, 12, 'feat']]
+  },
+  head: {
+    h: 78,
+    nodes: [['A', 36, 36, 'main'], ['B', 116, 36, 'main'], ['C', 196, 36, 'main'], ['D', 276, 36, 'main']],
+    edges: [['A', 'B', 'main'], ['B', 'C', 'main'], ['C', 'D', 'main']],
+    labels: [['HEAD~3', 36, 64], ['HEAD~2', 116, 64], ['HEAD~1', 196, 64], ['HEAD', 276, 64]]
+  }
+};
+GRAPHS.head.pills = [];
+$$('[data-graph]').forEach(h => graph(h, GRAPHS[h.dataset.graph]));
+
+/* ---------- search (Ctrl+K or /) ---------- */
+const srch = $('#srch'), srchInput = $('#srch-input'), srchRes = $('#srch-res');
+let sel = 0, results = [];
+function matchAll(hay, words) { return words.every(w => hay.includes(w)); }
+function filterSrch(q) {
+  const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  results = !words.length ? [] : CMD_INDEX.filter(r => matchAll((r.cmd + ' ' + r.en + ' ' + r.ar).toLowerCase(), words)).slice(0, 9);
+  sel = 0;
+  drawResults();
+}
+function drawResults() {
+  srchRes.textContent = '';
+  if (!results.length) {
+    const li = document.createElement('li');
+    li.className = 'sempty';
+    li.textContent = T('Type to search all commands', 'اكتب للبحث في كل الأوامر');
+    srchRes.appendChild(li);
+    return;
+  }
+  results.forEach((r, i) => {
+    const li = document.createElement('li');
+    li.className = 'sres' + (i === sel ? ' sel' : '');
+    const code = document.createElement('code');
+    code.textContent = r.cmd;
+    const sp = document.createElement('span');
+    sp.textContent = T(r.en, r.ar);
+    li.append(code, sp);
+    if (r.risk) {
+      const bd = document.createElement('span');
+      bd.className = 'badge ' + r.risk;
+      bd.textContent = T(RISK[r.risk][0], RISK[r.risk][1]);
+      li.appendChild(bd);
+    }
+    li.addEventListener('click', () => pickResult(r));
+    srchRes.appendChild(li);
+  });
+}
+function moveSel(d) {
+  if (!results.length) return;
+  sel = Math.min(Math.max(sel + d, 0), results.length - 1);
+  drawResults();
+  const el = srchRes.children[sel];
+  if (el) el.scrollIntoView({ block: 'nearest' });
+}
+async function pickResult(r) {
+  if (await copyText(r.cmd)) toast(T('Copied: ', 'تم النسخ: ') + r.cmd);
+  closeSrch();
+}
+function openSrch() {
+  srch.hidden = false;
+  srchInput.value = '';
+  filterSrch('');
+  srchInput.focus();
+}
+function closeSrch() { srch.hidden = true; }
+srchInput.addEventListener('input', () => filterSrch(srchInput.value));
+srchInput.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); moveSel(1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); moveSel(-1); }
+  else if (e.key === 'Enter') { e.preventDefault(); if (results[sel]) pickResult(results[sel]); }
+  else if (e.key === 'Escape') { e.preventDefault(); closeSrch(); }
+});
+srch.addEventListener('mousedown', e => { if (e.target === srch) closeSrch(); });
+$('#searchBtn').addEventListener('click', openSrch);
+document.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if ((e.ctrlKey || e.metaKey) && k === 'k') { e.preventDefault(); srch.hidden ? openSrch() : closeSrch(); return; }
+  if (k === '/' && srch.hidden && !/^(input|textarea)$/i.test((document.activeElement || {}).tagName || '')) { e.preventDefault(); openSrch(); }
+});
+
+/* ---------- favorites (kept in this browser) ---------- */
+let favs = new Set();
+try { const raw = JSON.parse(store.get('gcs-favs') || '[]'); if (Array.isArray(raw)) favs = new Set(raw); } catch (e) { favs = new Set(); }
+const CMD_INDEX = [];
+Object.keys(ROWS).forEach(k => { if (k !== 'essentials') ROWS[k].forEach(r => CMD_INDEX.push({ cmd: r[0], en: r[1], ar: r[2], risk: r[3] })); });
+FLOW.forEach(f => {
+  if (f[0] && !CMD_INDEX.some(c => c.cmd === f[0])) {
+    CMD_INDEX.push({ cmd: f[0], en: f[1], ar: f[2], risk: 'safe' });
+  }
+});
+function favRow(cmd) { return CMD_INDEX.find(r => r.cmd === cmd); }
+function renderFavs() {
+  const list = $('#favs-list');
+  list.textContent = '';
+  const has = favs.size > 0;
+  document.body.classList.toggle('has-favs', has);
+  $('#favs').hidden = !has;
+  [...favs].forEach(cmd => {
+    const r = favRow(cmd);
+    if (r) list.appendChild(row([r.cmd, r.en, r.ar, r.risk]));
+  });
+  $$('.fav').forEach(b => {
+    const on = favs.has(b.dataset.fav);
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', String(on));
+    b.setAttribute('aria-label', T(on ? 'Remove from favorites: ' : 'Add to favorites: ', on ? 'إزالة من المفضلة: ' : 'إضافة إلى المفضلة: ') + b.dataset.fav);
+  });
+}
+document.addEventListener('click', e => {
+  const fv = e.target.closest('.fav');
+  if (!fv) return;
+  const cmd = fv.dataset.fav;
+  if (favs.has(cmd)) favs.delete(cmd); else favs.add(cmd);
+  store.set('gcs-favs', JSON.stringify([...favs]));
+  renderFavs();
+});
+
+function generateGitAliases() {
+  if (!favs.size) return null;
+  const lines = ['[alias]'];
+  const common = {
+    'status': 'st',
+    'add .': 'a',
+    'commit -m "message"': 'cm',
+    'push': 'p',
+    'pull': 'pl',
+    'log --oneline': 'lg',
+    'restore --staged <file>': 'unstage',
+    'diff': 'd',
+    'diff --staged': 'ds',
+    'switch -c <name>': 'cb',
+    'switch main': 'main'
+  };
+  const used = new Set();
+  [...favs].forEach(cmd => {
+    let clean = cmd.trim();
+    if (clean.startsWith('git ')) clean = clean.slice(4).trim();
+    let name = common[clean];
+    if (!name) {
+      name = clean.split(/[^a-zA-Z0-9]/).filter(Boolean).slice(0, 2).map(s => s.slice(0, 2)).join('');
+    }
+    if (!name || used.has(name)) {
+      let base = name || 'alias';
+      let i = 1;
+      while (used.has(base + (i > 1 ? i : ''))) i++;
+      name = base + (i > 1 ? i : '');
+    }
+    used.add(name);
+    lines.push(`\t${name} = ${clean}`);
+  });
+  return lines.join('\n');
+}
+
+const exportAliasBtn = $('#exportAliasBtn');
+if (exportAliasBtn) {
+  exportAliasBtn.addEventListener('click', async () => {
+    const text = generateGitAliases();
+    if (!text) {
+      toast(T('No favorites starred yet', 'لا توجد أوامر في المفضلة بعد'));
+      return;
+    }
+    if (await copyText(text)) {
+      toast(T('Copied ~/.gitconfig aliases!', 'تم نسخ اختصارات gitconfig!'));
+    }
+  });
+}
+
+/* ---------- command rows ---------- */
+const ICON_STAR = `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.7l5.9-.8z"/></svg>`;
+function cmdButton(cmd) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'cmd';
+  b.dataset.copy = cmd;
+  const p = document.createElement('span');
+  p.className = 'prompt';
+  p.setAttribute('aria-hidden', 'true');
+  p.textContent = '$';
+  const c = document.createElement('code');
+  c.textContent = cmd;
+  b.append(p, c);
+  b.insertAdjacentHTML('beforeend', ICON_COPY);
+  return b;
+}
+function favButton(cmd) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'fav';
+  b.dataset.fav = cmd;
+  b.innerHTML = ICON_STAR;
+  return b;
+}
+function row([cmd, en, ar, risk]) {
+  const li = document.createElement('li');
+  li.className = 'row';
+  if (cmd) {
+    const line = document.createElement('div');
+    line.className = 'cmd-line';
+    line.appendChild(cmdButton(cmd));
+    if (favRow(cmd)) line.appendChild(favButton(cmd));
+    li.appendChild(line);
+  }
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  if (risk) {
+    const bd = document.createElement('span');
+    bd.className = 'badge ' + risk;
+    bd.dataset.en = RISK[risk][0];
+    bd.dataset.ar = RISK[risk][1];
+    meta.appendChild(bd);
+  }
+  const d = document.createElement('p');
+  d.className = 'desc';
+  d.dataset.en = en;
+  d.dataset.ar = ar;
+  meta.appendChild(d);
+  li.appendChild(meta);
+  return li;
+}
+$$('[data-rows]').forEach(ul => (ROWS[ul.dataset.rows] || []).forEach(r => ul.appendChild(row(r))));
+
+const flow = $('#flow');
+FLOW.forEach(([cmd, en, ar]) => {
+  const li = document.createElement('li');
+  const p = document.createElement('p');
+  p.className = 'step-desc';
+  p.dataset.en = en;
+  p.dataset.ar = ar;
+  li.appendChild(p);
+  if (cmd) li.appendChild(cmdButton(cmd));
+  flow.appendChild(li);
+});
+
+/* ---------- copy on tap ---------- */
+async function copyText(t) {
+  if (window.isSecureContext && navigator?.clipboard?.writeText) {
+    try { await navigator.clipboard.writeText(t); return true; } catch (e) { /* fall through */ }
+  }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = t;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    return !!ok;
+  } catch (e) { return false; }
+}
+let toastTimer = 0;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1400);
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('.cmd');
+  if (!b) return;
+  if (await copyText(b.dataset.copy)) {
+    b.classList.add('copied');
+    setTimeout(() => b.classList.remove('copied'), 900);
+    toast(T('Copied', 'تم النسخ'));
+  }
+});
+
+/* ---------- the journey of one change ---------- */
+const STOPS = [
+  { tone: 'red',   en: `Working directory`, ar: `مجلد العمل (Working dir)`, ne: `Where you edit files`, na: `المكان الذي تعدّل فيه ملفاتك` },
+  { tone: 'green', en: `Staging area`, ar: `التجهيز (Staging)`, ne: `What goes into the next commit`, na: `ما سيدخل في الـ commit القادم` },
+  { tone: 'amber', en: `Local repository`, ar: `المحلي (Local repo)`, ne: `Your commit history, on your machine`, na: `تاريخ الـ commits على جهازك` },
+  { tone: 'blue',  en: `Remote (GitHub)`, ar: `البعيد (GitHub)`, ne: `The shared copy your team sees`, na: `النسخة المشتركة التي يراها فريقك` }
+];
+const HOPS = [
+  { fwd: `git add test_login.py`, back: `git restore --staged test_login.py` },
+  { fwd: `git commit -m "Add login test"`, back: `git reset --soft HEAD~1` },
+  { fwd: `git push`, back: null }
+];
+const TERM = [
+`<span class="p">$ git status</span>
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+        <span class="t-red">modified:   test_login.py</span>
+
+<span class="t-mut">no changes added to commit (use "git add" and/or "git commit -a")</span>`,
+`<span class="p">$ git status</span>
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+        <span class="t-green">modified:   test_login.py</span>`,
+`<span class="p">$ git status</span>
+On branch main
+Your branch is ahead of 'origin/main' by 1 commit.
+
+nothing to commit, working tree clean`,
+`<span class="p">$ git status</span>
+On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean`
+];
+const EXPLAIN = [
+  [`The edit exists only in your working folder. Git sees it, but it will not go into a commit yet.`, `التعديل موجود في مجلد العمل فقط. Git يراه لكنه لن يدخل في أي commit بعد.`],
+  [`Staged: this exact version will go into the next commit.`, `تم تجهيزه: هذه النسخة بالذات ستدخل في الـ commit القادم.`],
+  [`Committed: saved in your local history. Only you have it so far.`, `تم تسجيله في تاريخك المحلي. أنت وحدك تملك هذا الـ commit حتى الآن.`],
+  [`Pushed: GitHub has it. From here, undo with git revert, not reset.`, `تم رفعه: أصبح لدى GitHub. للتراجع من هنا استخدم git revert وليس reset.`]
+];
+
+let pos = 0;
+const journey = $('#journey');
+const stopEls = [];
+const hopEls = [];
+function hopButton(cmd, kind, glyph) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'hb ' + kind;
+  const i = document.createElement('i');
+  i.setAttribute('aria-hidden', 'true');
+  i.textContent = glyph;
+  const c = document.createElement('code');
+  c.textContent = cmd;
+  b.append(i, c);
+  return b;
+}
+STOPS.forEach((s, i) => {
+  const st = document.createElement('div');
+  st.className = 'stop';
+  st.style.setProperty('--tone', `var(--${s.tone})`);
+  st.style.setProperty('--tone-soft', `var(--${s.tone}-soft)`);
+  st.innerHTML = '<span class="node"></span><div class="stop-title"></div><div class="stop-note"></div><div class="slot"></div>';
+  journey.appendChild(st);
+  stopEls.push(st);
+  if (i < HOPS.length) {
+    const h = HOPS[i];
+    const hop = document.createElement('div');
+    hop.className = 'hop';
+    const f = hopButton(h.fwd, 'fwd', '↓');
+    hop.appendChild(f);
+    let b = null;
+    if (h.back) { b = hopButton(h.back, 'back', '↑'); hop.appendChild(b); }
+    f.addEventListener('click', () => { if (pos === i) { pos = i + 1; renderJourney(true); } });
+    if (b) b.addEventListener('click', () => { if (pos === i + 1) { pos = i; renderJourney(true); } });
+    journey.appendChild(hop);
+    hopEls.push({ f, b });
+  }
+});
+function renderJourney(animate) {
+  stopEls.forEach((el, i) => {
+    const s = STOPS[i];
+    el.classList.toggle('is-here', i === pos);
+    $('.stop-title', el).textContent = T(s.en, s.ar);
+    $('.stop-note', el).textContent = T(s.ne, s.na);
+    const slot = $('.slot', el);
+    slot.textContent = '';
+    if (i === pos) {
+      const tk = document.createElement('span');
+      tk.className = 'token' + (animate ? ' drop' : '');
+      tk.textContent = 'test_login.py';
+      slot.appendChild(tk);
+    }
+  });
+  hopEls.forEach(({ f, b }, i) => {
+    f.disabled = pos !== i;
+    if (b) b.disabled = pos !== i + 1;
+  });
+  $('#term').innerHTML = TERM[pos];
+  const ex = EXPLAIN[pos];
+  $('#explain').textContent = T(ex[0], ex[1]);
+}
+$('#reset').addEventListener('click', () => { pos = 0; renderJourney(true); });
+
+/* ---------- drills (progress kept in this browser) ---------- */
+let done = [];
+try { const raw = JSON.parse(store.get('gcs-drills') || '[]'); if (Array.isArray(raw)) done = raw; } catch (e) { done = []; }
+const drillList = $('#drills');
+DRILLS.forEach(([en, ar], i) => {
+  const li = document.createElement('li');
+  const label = document.createElement('label');
+  const cb = document.createElement('input');
+  cb.type = 'checkbox';
+  cb.checked = !!done[i];
+  const sp = document.createElement('span');
+  sp.dataset.en = en;
+  sp.dataset.ar = ar;
+  cb.addEventListener('change', () => {
+    done[i] = cb.checked;
+    store.set('gcs-drills', JSON.stringify(done));
+    updateProgress();
+  });
+  label.append(cb, sp);
+  li.appendChild(label);
+  drillList.appendChild(li);
+});
+function updateProgress() {
+  const n = DRILLS.filter((_, i) => done[i]).length;
+  $('#progress').textContent = T(`${n} of ${DRILLS.length} done`, `أنجزت ${n} من ${DRILLS.length}`);
+}
+
+/* ---------- language, theme, menu ---------- */
+function applyLang(next) {
+  if (next) lang = next;
+  root.lang = lang;
+  root.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  $$('[data-en]').forEach(n => { n.textContent = lang === 'ar' ? n.dataset.ar : n.dataset.en; });
+  $$('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
+  $$('.cmd').forEach(b => b.setAttribute('aria-label', T('Copy command: ', 'نسخ الأمر: ') + b.dataset.copy));
+  $$('.fav').forEach(b => { const on = b.classList.contains('on'); b.setAttribute('aria-label', T(on ? 'Remove from favorites: ' : 'Add to favorites: ', on ? 'إزالة من المفضلة: ' : 'إضافة إلى المفضلة: ') + b.dataset.fav); });
+  document.title = T('Git cheat sheet', 'ورقة Git السريعة');
+  renderJourney(false);
+  updateProgress();
+  if (typeof drawResults === 'function') drawResults();
+  store.set('gcs-lang', lang);
+}
+$$('.seg button').forEach(b => b.addEventListener('click', () => applyLang(b.dataset.lang)));
+
+/* ---------- view toggle (essentials / full) ---------- */
+let view = store.get('gcs-view') === 'full' ? 'full' : 'essentials';
+function applyView(next) {
+  if (next) view = next;
+  const isEss = view === 'essentials';
+  document.body.classList.toggle('view-essentials', isEss);
+  $$('.view-toggle button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+  store.set('gcs-view', view);
+}
+$$('.view-toggle button').forEach(b => b.addEventListener('click', () => applyView(b.dataset.view)));
+applyView();
+
+const menu = $('#menu');
+menu.addEventListener('click', e => { if (e.target.closest('a')) menu.open = false; });
+document.addEventListener('click', e => { if (menu.open && !menu.contains(e.target)) menu.open = false; });
+
+/* chips: if clicking a hidden section, auto-switch to full */
+document.querySelectorAll('.chip[href^="#"]').forEach(a => a.addEventListener('click', () => {
+  const id = a.getAttribute('href').slice(1);
+  const sec = document.getElementById(id);
+  if (sec && sec.classList.contains('essentials') === false && document.body.classList.contains('view-essentials')) {
+    applyView('full');
+  }
+}));
+
+applyLang();
+})();
+</script>
+</body>
+</html>
