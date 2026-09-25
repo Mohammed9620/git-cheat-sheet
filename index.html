@@ -67,10 +67,10 @@ html[lang="ar"] h1,html[lang="ar"] h2,html[lang="ar"] h3{letter-spacing:0;line-h
 
 /* favorites */
 .fav{flex:none;width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;opacity:.55;padding:0}
-.fav svg{width:16px;height:16px}
+.fav svg{width:16px;height:16px;fill:none;stroke:currentColor}
 .fav:hover{background:var(--surface-2);opacity:1}
 .fav.on{color:var(--amber);opacity:1}
-.fav.on svg path{fill:currentColor}
+.fav.on svg{fill:currentColor}
 body:not(.has-favs) #favs{display:none}
 
 /* search overlay */
@@ -140,9 +140,8 @@ kbd{font:600 .72rem var(--mono);border:1px solid var(--rule);border-radius:5px;p
 .cmd-line{display:flex;gap:6px;align-items:stretch;min-width:0}
 .cmd-line .cmd{flex:1;min-width:0}
 .cmd:hover{background:var(--surface-2)}
-.cmd .prompt{color:var(--muted);user-select:none}
 .cmd code{font:inherit;flex:1;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
-.cmd svg{flex:none;width:14px;height:14px;color:var(--muted);opacity:.5}
+.cmd svg{flex:none;width:14px;height:14px;color:var(--muted);opacity:.5;fill:none;stroke:currentColor}
 .cmd.copied{background:var(--green-soft)}
 
 .fig{margin:32px 0 0}
@@ -202,6 +201,15 @@ body.view-essentials .view-toggle{display:inline-flex}
 </style>
 </head>
 <body>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <symbol id="ico-copy" viewBox="0 0 24 24">
+    <rect x="9" y="9" width="11" height="11" rx="2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M5 15V6a2 2 0 0 1 2-2h9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="ico-star" viewBox="0 0 24 24">
+    <path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.7l5.9-.8z" stroke-width="2" stroke-linejoin="round"/>
+  </symbol>
+</svg>
 
 <header class="bar">
   <div class="wrap bar-in">
@@ -431,7 +439,7 @@ const store = {
 let lang = store.get('gcs-lang') === 'en' ? 'en' : 'ar';
 const T = (en, ar) => (lang === 'ar' ? ar : en);
 
-const ICON_COPY = `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>`;
+const ICON_COPY = `<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ico-copy"/></svg>`;
 
 const RISK = {
   safe:   [`Safe`, `آمن`],
@@ -626,7 +634,41 @@ const GRAPHS = {
   }
 };
 GRAPHS.head.pills = [];
-$$('[data-graph]').forEach(h => graph(h, GRAPHS[h.dataset.graph]));
+let graphsRendered = false;
+function ensureGraphs() {
+  if (graphsRendered) return;
+  graphsRendered = true;
+  $$('[data-graph]').forEach(h => graph(h, GRAPHS[h.dataset.graph]));
+}
+
+/* ---------- favorites & command index ---------- */
+let favs = new Set();
+try { const raw = JSON.parse(store.get('gcs-favs') || '[]'); if (Array.isArray(raw)) favs = new Set(raw); } catch (e) { favs = new Set(); }
+const CMD_INDEX = [];
+Object.keys(ROWS).forEach(k => {
+  if (k !== 'essentials') {
+    ROWS[k].forEach(r => CMD_INDEX.push({
+      cmd: r[0],
+      en: r[1],
+      ar: r[2],
+      risk: r[3],
+      searchStr: (r[0] + ' ' + r[1]).toLowerCase()
+    }));
+  }
+});
+FLOW.forEach(f => {
+  if (f[0] && !CMD_INDEX.some(c => c.cmd === f[0])) {
+    CMD_INDEX.push({
+      cmd: f[0],
+      en: f[1],
+      ar: f[2],
+      risk: 'safe',
+      searchStr: (f[0] + ' ' + f[1]).toLowerCase()
+    });
+  }
+});
+const CMD_MAP = new Map(CMD_INDEX.map(r => [r.cmd, r]));
+function favRow(cmd) { return CMD_MAP.get(cmd); }
 
 /* ---------- search (Ctrl+K or /) ---------- */
 const srch = $('#srch'), srchInput = $('#srch-input'), srchRes = $('#srch-res');
@@ -634,7 +676,7 @@ let sel = 0, results = [];
 function matchAll(hay, words) { return words.every(w => hay.includes(w)); }
 function filterSrch(q) {
   const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  results = !words.length ? [] : CMD_INDEX.filter(r => matchAll((r.cmd + ' ' + r.en + ' ' + r.ar).toLowerCase(), words)).slice(0, 9);
+  results = !words.length ? [] : CMD_INDEX.filter(r => matchAll(r.searchStr, words)).slice(0, 9);
   sel = 0;
   drawResults();
 }
@@ -647,9 +689,11 @@ function drawResults() {
     srchRes.appendChild(li);
     return;
   }
+  const frag = document.createDocumentFragment();
   results.forEach((r, i) => {
     const li = document.createElement('li');
     li.className = 'sres' + (i === sel ? ' sel' : '');
+    li.dataset.idx = String(i);
     const code = document.createElement('code');
     code.textContent = r.cmd;
     const sp = document.createElement('span');
@@ -661,10 +705,16 @@ function drawResults() {
       bd.textContent = T(RISK[r.risk][0], RISK[r.risk][1]);
       li.appendChild(bd);
     }
-    li.addEventListener('click', () => pickResult(r));
-    srchRes.appendChild(li);
+    frag.appendChild(li);
   });
+  srchRes.appendChild(frag);
 }
+srchRes.addEventListener('click', e => {
+  const li = e.target.closest('.sres');
+  if (!li || li.dataset.idx === undefined) return;
+  const r = results[Number(li.dataset.idx)];
+  if (r) pickResult(r);
+});
 function moveSel(d) {
   if (!results.length) return;
   sel = Math.min(Math.max(sel + d, 0), results.length - 1);
@@ -698,27 +748,20 @@ document.addEventListener('keydown', e => {
   if (k === '/' && srch.hidden && !/^(input|textarea)$/i.test((document.activeElement || {}).tagName || '')) { e.preventDefault(); openSrch(); }
 });
 
-/* ---------- favorites (kept in this browser) ---------- */
-let favs = new Set();
-try { const raw = JSON.parse(store.get('gcs-favs') || '[]'); if (Array.isArray(raw)) favs = new Set(raw); } catch (e) { favs = new Set(); }
-const CMD_INDEX = [];
-Object.keys(ROWS).forEach(k => { if (k !== 'essentials') ROWS[k].forEach(r => CMD_INDEX.push({ cmd: r[0], en: r[1], ar: r[2], risk: r[3] })); });
-FLOW.forEach(f => {
-  if (f[0] && !CMD_INDEX.some(c => c.cmd === f[0])) {
-    CMD_INDEX.push({ cmd: f[0], en: f[1], ar: f[2], risk: 'safe' });
-  }
-});
-function favRow(cmd) { return CMD_INDEX.find(r => r.cmd === cmd); }
 function renderFavs() {
   const list = $('#favs-list');
   list.textContent = '';
   const has = favs.size > 0;
   document.body.classList.toggle('has-favs', has);
   $('#favs').hidden = !has;
-  [...favs].forEach(cmd => {
-    const r = favRow(cmd);
-    if (r) list.appendChild(row([r.cmd, r.en, r.ar, r.risk]));
-  });
+  if (has) {
+    const frag = document.createDocumentFragment();
+    [...favs].forEach(cmd => {
+      const r = favRow(cmd);
+      if (r) frag.appendChild(row([r.cmd, r.en, r.ar, r.risk]));
+    });
+    list.appendChild(frag);
+  }
   $$('.fav').forEach(b => {
     const on = favs.has(b.dataset.fav);
     b.classList.toggle('on', on);
@@ -786,7 +829,7 @@ if (exportAliasBtn) {
 }
 
 /* ---------- command rows ---------- */
-const ICON_STAR = `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.7l5.9-.8z"/></svg>`;
+const ICON_STAR = `<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ico-star"/></svg>`;
 function cmdButton(cmd) {
   const b = document.createElement('button');
   b.type = 'button';
@@ -837,9 +880,15 @@ function row([cmd, en, ar, risk]) {
   li.appendChild(meta);
   return li;
 }
-$$('[data-rows]').forEach(ul => (ROWS[ul.dataset.rows] || []).forEach(r => ul.appendChild(row(r))));
+$$('[data-rows]').forEach(ul => {
+  const items = ROWS[ul.dataset.rows] || [];
+  const frag = document.createDocumentFragment();
+  items.forEach(r => frag.appendChild(row(r)));
+  ul.appendChild(frag);
+});
 
 const flow = $('#flow');
+const flowFrag = document.createDocumentFragment();
 FLOW.forEach(([cmd, en, ar]) => {
   const li = document.createElement('li');
   const p = document.createElement('p');
@@ -848,8 +897,9 @@ FLOW.forEach(([cmd, en, ar]) => {
   p.dataset.ar = ar;
   li.appendChild(p);
   if (cmd) li.appendChild(cmdButton(cmd));
-  flow.appendChild(li);
+  flowFrag.appendChild(li);
 });
+flow.appendChild(flowFrag);
 
 /* ---------- copy on tap ---------- */
 async function copyText(t) {
@@ -954,7 +1004,13 @@ STOPS.forEach((s, i) => {
   st.style.setProperty('--tone-soft', `var(--${s.tone}-soft)`);
   st.innerHTML = '<span class="node"></span><div class="stop-title"></div><div class="stop-note"></div><div class="slot"></div>';
   journey.appendChild(st);
-  stopEls.push(st);
+  stopEls.push({
+    el: st,
+    title: $('.stop-title', st),
+    note: $('.stop-note', st),
+    slot: $('.slot', st),
+    s
+  });
   if (i < HOPS.length) {
     const h = HOPS[i];
     const hop = document.createElement('div');
@@ -970,18 +1026,16 @@ STOPS.forEach((s, i) => {
   }
 });
 function renderJourney(animate) {
-  stopEls.forEach((el, i) => {
-    const s = STOPS[i];
-    el.classList.toggle('is-here', i === pos);
-    $('.stop-title', el).textContent = T(s.en, s.ar);
-    $('.stop-note', el).textContent = T(s.ne, s.na);
-    const slot = $('.slot', el);
-    slot.textContent = '';
+  stopEls.forEach((item, i) => {
+    item.el.classList.toggle('is-here', i === pos);
+    item.title.textContent = T(item.s.en, item.s.ar);
+    item.note.textContent = T(item.s.ne, item.s.na);
+    item.slot.textContent = '';
     if (i === pos) {
       const tk = document.createElement('span');
       tk.className = 'token' + (animate ? ' drop' : '');
       tk.textContent = 'test_login.py';
-      slot.appendChild(tk);
+      item.slot.appendChild(tk);
     }
   });
   hopEls.forEach(({ f, b }, i) => {
@@ -1043,6 +1097,7 @@ let view = store.get('gcs-view') === 'full' ? 'full' : 'essentials';
 function applyView(next) {
   if (next) view = next;
   const isEss = view === 'essentials';
+  if (!isEss) ensureGraphs();
   document.body.classList.toggle('view-essentials', isEss);
   $$('.view-toggle button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
   store.set('gcs-view', view);
@@ -1057,6 +1112,7 @@ document.addEventListener('click', e => { if (menu.open && !menu.contains(e.targ
 /* chips: if clicking a hidden section, auto-switch to full */
 document.querySelectorAll('.chip[href^="#"]').forEach(a => a.addEventListener('click', () => {
   const id = a.getAttribute('href').slice(1);
+  if (id === 'branch' || id === 'undo') ensureGraphs();
   const sec = document.getElementById(id);
   if (sec && sec.classList.contains('essentials') === false && document.body.classList.contains('view-essentials')) {
     applyView('full');
