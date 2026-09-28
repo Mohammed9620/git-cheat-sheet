@@ -200,7 +200,7 @@ body.view-essentials .view-toggle{display:inline-flex}
 
 </style>
 </head>
-<body>
+<body class="view-essentials">
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
   <symbol id="ico-copy" viewBox="0 0 24 24">
     <rect x="9" y="9" width="11" height="11" rx="2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -275,7 +275,7 @@ body.view-essentials .view-toggle{display:inline-flex}
 
   <section class="sec essentials" id="essentials">
     <h2 data-en="Daily Essentials" data-ar="الأساسيات اليومية"></h2>
-    <p class="intro" data-en="The 15 commands you use 90% of the time." data-ar="أهم 15 أمراً تستخدمها 90% من الوقت."></p>
+    <p class="intro" data-en="The most essential commands you use 90% of the time." data-ar="أهم الأوامر الأساسية التي تستخدمها 90% من الوقت."></p>
     <ul class="rows" data-rows="essentials"></ul>
   </section>
 
@@ -487,6 +487,7 @@ const ROWS = {
     [`git branch`, `List branches (* marks the current one)`, `اعرض الفروع (علامة * تعني الفرع الحالي)`],
     [`git switch -c <name>`, `Create a branch and move to it`, `أنشئ فرعاً وانتقل إليه`],
     [`git switch <name>`, `Move to an existing branch`, `انتقل إلى فرع موجود`],
+    [`git branch -m <old> <new>`, `Rename a local branch`, `غيّر اسم فرع محلي`],
     [`git merge <name>`, `Merge that branch into the one you are on`, `ادمج ذلك الفرع في الفرع الذي أنت عليه`],
     [`git merge --abort`, `Cancel a merge that hit conflicts`, `ألغِ عملية دمج ظهرت فيها conflicts`],
     [`git rebase main`, `Replay your branch on top of main for a straight history`, `أعد تطبيق commits فرعك فوق main لتحصل على تاريخ مستقيم`],
@@ -534,11 +535,16 @@ const ROWS = {
     [`git add .`, `Stage every change in this folder`, `جهّز كل التغييرات في هذا المجلد`],
     [`git commit -m "message"`, `Save a snapshot of what is staged`, `احفظ لقطة (snapshot) لما تم تجهيزه`],
     [`git push`, `Send your commits to the remote`, `أرسل الـ commits إلى المستودع البعيد`],
+    [`git push -u origin main`, `First push: set upstream tracking`, `أول push: ربط الفرع بالمستودع البعيد`],
     [`git pull`, `Fetch new commits from the remote and merge them`, `اجلب الـ commits الجديدة من البعيد وادمجها`],
+    [`git branch`, `List branches (* marks current)`, `اعرض الفروع (علامة * تعني الفرع الحالي)`],
+    [`git branch -m <old> <new>`, `Rename a local branch`, `غيّر اسم فرع محلي`],
+    [`git branch -M main`, `Rename current branch to main`, `غيّر اسم الفرع الحالي إلى main`],
     [`git switch -c <name>`, `Create a branch and move to it`, `أنشئ فرعاً وانتقل إليه`],
     [`git switch main`, `Switch to main branch`, `انتقل لفرع main`],
     [`git merge <name>`, `Merge that branch into current`, `ادمج ذلك الفرع في الحالي`],
     [`git branch -d <name>`, `Delete a merged branch`, `احذف فرع تم دمجه`],
+    [`git remote add origin <url>`, `Link repository to GitHub`, `اربط المستودع بـ GitHub`],
     [`git restore --staged <file>`, `Unstage a file, keep edits`, `أزل من التجهيز، أبقِ التغييرات`, `safe`],
     [`git restore <file>`, `Discard changes in a file`, `ارمِ تغييرات ملف`, `danger`],
     [`git commit --amend`, `Fix last commit message/files`, `عدّل آخر commit`, `local`],
@@ -646,15 +652,17 @@ let favs = new Set();
 try { const raw = JSON.parse(store.get('gcs-favs') || '[]'); if (Array.isArray(raw)) favs = new Set(raw); } catch (e) { favs = new Set(); }
 const CMD_INDEX = [];
 Object.keys(ROWS).forEach(k => {
-  if (k !== 'essentials') {
-    ROWS[k].forEach(r => CMD_INDEX.push({
-      cmd: r[0],
-      en: r[1],
-      ar: r[2],
-      risk: r[3],
-      searchStr: (r[0] + ' ' + r[1]).toLowerCase()
-    }));
-  }
+  ROWS[k].forEach(r => {
+    if (!CMD_INDEX.some(c => c.cmd === r[0])) {
+      CMD_INDEX.push({
+        cmd: r[0],
+        en: r[1],
+        ar: r[2],
+        risk: r[3],
+        searchStr: (r[0] + ' ' + r[1] + ' ' + (r[2] || '')).toLowerCase()
+      });
+    }
+  });
 });
 FLOW.forEach(f => {
   if (f[0] && !CMD_INDEX.some(c => c.cmd === f[0])) {
@@ -663,7 +671,7 @@ FLOW.forEach(f => {
       en: f[1],
       ar: f[2],
       risk: 'safe',
-      searchStr: (f[0] + ' ' + f[1]).toLowerCase()
+      searchStr: (f[0] + ' ' + f[1] + ' ' + (f[2] || '')).toLowerCase()
     });
   }
 });
@@ -787,6 +795,7 @@ function generateGitAliases() {
     'commit -m "message"': 'cm',
     'push': 'p',
     'pull': 'pl',
+    'branch': 'br',
     'log --oneline': 'lg',
     'restore --staged <file>': 'unstage',
     'diff': 'd',
@@ -809,7 +818,8 @@ function generateGitAliases() {
       name = base + (i > 1 ? i : '');
     }
     used.add(name);
-    lines.push(`\t${name} = ${clean}`);
+    const aliasVal = clean.includes('&&') ? `!git ${clean}` : clean;
+    lines.push(`\t${name} = ${aliasVal}`);
   });
   return lines.join('\n');
 }
@@ -870,12 +880,14 @@ function row([cmd, en, ar, risk]) {
     bd.className = 'badge ' + risk;
     bd.dataset.en = RISK[risk][0];
     bd.dataset.ar = RISK[risk][1];
+    bd.textContent = T(RISK[risk][0], RISK[risk][1]);
     meta.appendChild(bd);
   }
   const d = document.createElement('p');
   d.className = 'desc';
   d.dataset.en = en;
   d.dataset.ar = ar;
+  d.textContent = T(en, ar);
   meta.appendChild(d);
   li.appendChild(meta);
   return li;
@@ -1086,6 +1098,7 @@ function applyLang(next) {
   $$('.fav').forEach(b => { const on = b.classList.contains('on'); b.setAttribute('aria-label', T(on ? 'Remove from favorites: ' : 'Add to favorites: ', on ? 'إزالة من المفضلة: ' : 'إضافة إلى المفضلة: ') + b.dataset.fav); });
   document.title = T('Git cheat sheet', 'ورقة Git السريعة');
   renderJourney(false);
+  renderFavs();
   updateProgress();
   if (typeof drawResults === 'function') drawResults();
   store.set('gcs-lang', lang);
@@ -1119,6 +1132,7 @@ document.querySelectorAll('.chip[href^="#"]').forEach(a => a.addEventListener('c
   }
 }));
 
+renderFavs();
 applyLang();
 })();
 </script>

@@ -44,9 +44,8 @@ Fonts (Readex Pro and JetBrains Mono) load from Google Fonts. Offline, the page 
 
 ## Host it on GitHub Pages
 
-1. Rename `git-cheat-sheet.html` to `index.html`.
-2. Push it to your repository.
-3. Go to **Settings → Pages**, set the source to **Deploy from a branch**, choose `main` and `/ (root)`, then save.
+1. Push `index.html` to your repository on GitHub.
+2. Go to **Settings → Pages**, set the source to **Deploy from a branch**, choose `main` and `/ (root)`, then save.
 4. After a minute, the site is live.
 
 ## Notes
